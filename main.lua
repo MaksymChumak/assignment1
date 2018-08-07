@@ -38,11 +38,13 @@ require 'states/CountdownState'
 require 'states/PlayState'
 require 'states/ScoreState'
 require 'states/TitleScreenState'
+require 'states/PauseState'
 
 require 'Bird'
 require 'Pipe'
 require 'PipePair'
 require 'Trophy'
+require 'PauseIcon'
 
 -- physical screen dimensions
 WINDOW_WIDTH = 1280
@@ -88,12 +90,13 @@ function love.load()
         ['score'] = love.audio.newSource('score.wav', 'static'),
 
         -- https://freesound.org/people/xsgianni/sounds/388079/
-        ['music'] = love.audio.newSource('marios_way.mp3', 'static')
+        ['play_music'] = love.audio.newSource('marios_way.mp3', 'static'),
+        ['pause_music'] = love.audio.newSource('pause.wav', 'static')
     }
 
     -- kick off music
-    sounds['music']:setLooping(true)
-    sounds['music']:play()
+    sounds['play_music']:setLooping(true)
+    sounds['play_music']:play()
 
     -- initialize our virtual resolution
     push:setupScreen(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, WINDOW_WIDTH, WINDOW_HEIGHT, {
@@ -107,7 +110,8 @@ function love.load()
         ['title'] = function() return TitleScreenState() end,
         ['countdown'] = function() return CountdownState() end,
         ['play'] = function() return PlayState() end,
-        ['score'] = function() return ScoreState() end
+        ['score'] = function() return ScoreState() end,
+        ['pause'] = function() return PauseState() end
     }
     gStateMachine:change('title')
 
@@ -155,14 +159,18 @@ function love.mouse.wasPressed(button)
 end
 
 function love.update(dt)
-    -- scroll our background and ground, looping back to 0 after a certain amount
-    backgroundScroll = (backgroundScroll + BACKGROUND_SCROLL_SPEED * dt) % BACKGROUND_LOOPING_POINT
-    groundScroll = (groundScroll + GROUND_SCROLL_SPEED * dt) % VIRTUAL_WIDTH
-
     gStateMachine:update(dt)
-
-    love.keyboard.keysPressed = {}
-    love.mouse.buttonsPressed = {}
+    -- scroll our background and ground, looping back to 0 after a certain amount
+    if scrolling then 
+      backgroundScroll = (backgroundScroll + BACKGROUND_SCROLL_SPEED * dt) % BACKGROUND_LOOPING_POINT
+      groundScroll = (groundScroll + GROUND_SCROLL_SPEED * dt) % VIRTUAL_WIDTH 
+      
+      love.keyboard.keysPressed = {}
+      love.mouse.buttonsPressed = {}
+    else
+      backgroundScroll = backgroundScroll
+      groundScroll = groundScroll
+    end
 end
 
 function love.draw()

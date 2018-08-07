@@ -99,6 +99,15 @@ function PlayState:update(dt)
             score = self.score
         })
     end
+
+    if love.keyboard.wasPressed('p') then
+      gStateMachine:change('pause', {
+        score = self.score,
+        bird = self.bird,
+        pipePairs = self.pipePairs,
+        timer = self.timer
+      })
+    end
 end
 
 function PlayState:render()
@@ -115,9 +124,15 @@ end
 --[[
     Called when this state is transitioned to from another state.
 ]]
-function PlayState:enter()
+function PlayState:enter(params)
     -- if we're coming from death, restart scrolling
     scrolling = true
+    if params.previousState == 'pause' then
+        self.score = params.score
+        self.bird = params.bird
+        self.pipePairs = params.pipePairs
+        self.timer = params.timer
+    end
 end
 
 --[[
